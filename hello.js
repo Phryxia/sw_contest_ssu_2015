@@ -197,7 +197,7 @@ app.route("/assignObject").post(function (request, response) {
 	var result = {
 		obj_id: null,
 		error: null
-	}
+	};
 
 	console.log("*----*----*----*----*----*----*----*----*-----*");
 	console.log("Object insertion request has been occured");
@@ -312,7 +312,7 @@ app.route("/objList").post(function (request, response) {
 	var result = {
 		data: null,
 		error: null
-	}
+	};
 
 	// Security Check
 	var email = pool.escape(request.body.email);
