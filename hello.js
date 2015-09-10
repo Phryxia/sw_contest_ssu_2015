@@ -1,6 +1,7 @@
 var express    = require("express");
 var bodyParser = require("body-parser");
 var fs         = require("fs");
+var path       = require("path");
 
 /*
  * MySQL Connection
@@ -25,7 +26,7 @@ app.use(bodyParser());
 /*
  * Default Page
  * */
-app.route("/").get(function(request, response) {
+app.route("/").get(function (request, response) {
 
 	console.log("Host name : " + request.hostname);
 	console.log("IP        : " + request.ip);
@@ -41,7 +42,7 @@ app.route("/").get(function(request, response) {
  *
  * contents = "blahblahblah..."
  * */
-app.route("/echo").post(function(request, response) {
+app.route("/echo").post(function (request, response) {
 	var contents = request.body.contents;
 
 	response.send(contents);
@@ -50,7 +51,7 @@ app.route("/echo").post(function(request, response) {
 /*
  * Test page for Join
  * */
-app.route("/join").get(function(request, response) {
+app.route("/join").get(function (request, response) {
 	fs.readFile("join.html", function(error, data) {
 		response.send(data.toString());
 	});
@@ -59,7 +60,7 @@ app.route("/join").get(function(request, response) {
 /*
  * Member Join
  * */
-app.route("/join").post(function(request, response) {
+app.route("/join").post(function (request, response) {
 
 	// Log the input data.
 	console.log("*----*----*----*----*----*----*----*----*-----*");
@@ -80,7 +81,7 @@ app.route("/join").post(function(request, response) {
 	var script = "SELECT * FROM USER WHERE "
 		+ "EMAIL=" + email + ";";
 
-	pool.query(script, function(error, rows, fields) {
+	pool.query(script, function (error, rows, fields) {
 		// Check the error
 		if(error != null) {
 			// Thre is an error
@@ -99,7 +100,7 @@ app.route("/join").post(function(request, response) {
 					+ email
 					+ ", password(" + password + "));";
 
-				pool.query(script, function(error, rows, fileds) {
+				pool.query(script, function (error, rows, fileds) {
 					console.log("	Join Accepted");
 					result["isExist"] = "false";
 			
@@ -122,8 +123,8 @@ app.route("/join").post(function(request, response) {
 /*
  * Test page for login
  * */
-app.route("/login").get(function(request, response) {
-	fs.readFile("join.html", function(error, data) {
+app.route("/login").get(function (request, response) {
+	fs.readFile("join.html", function (error, data) {
 		response.send(data.toString());
 	});
 });
@@ -149,7 +150,7 @@ app.route("/login").post(function(request, response) {
    		+ "EMAIL=" + email + " AND "
 		+ "PASSWORD=password(" + password + ");";	
 
-	pool.query(script, function(error, rows, fields) {
+	pool.query(script, function (error, rows, fields) {
 		// Check Error
 		if(error != null) {
 			
@@ -179,7 +180,7 @@ app.route("/login").post(function(request, response) {
 /*
  * Test page for assignObject
  * */
-app.route("/assignObject").get(function(request, response) {
+app.route("/assignObject").get(function (request, response) {
 	fs.readFile("assignObject.html", function(error, data) {
 		response.send(data.toString());
 	});
@@ -188,9 +189,7 @@ app.route("/assignObject").get(function(request, response) {
 /*
  * Assign Obejct
  * */
-app.route("/assignObject").post(function(request, response) {
-
-	var script;
+app.route("/assignObject").post(function (request, response) {
 	var email    = pool.escape(request.body.email);
 	var obj_name = pool.escape(request.body.obj_name); 
 
@@ -205,11 +204,11 @@ app.route("/assignObject").post(function(request, response) {
 	console.log("	Owner:" + email);
 	console.log("	OName:" + obj_name);
 
-	script = "SELECT * FROM OBJECT WHERE "
+	var script = "SELECT * FROM OBJECT WHERE "
 		+ "EMAIL="    + email    + " AND "
 		+ "OBJ_NAME=" + obj_name + ";";
 
-	pool.query(script, function(error, rows, fields) {
+	pool.query(script, function (error, rows, fields) {
 		// Check Error
 		if(error != null) {
 			// Error
@@ -245,6 +244,167 @@ app.route("/assignObject").post(function(request, response) {
 			}
 		}
 	});
+});
+
+/*
+ * Assign Lost Object
+ *
+ * Note that this part will be accpeted by arduino.
+ * Therfore we'll not going to send JSON data to it.
+ */
+app.route("/report").get(function (request, response) {
+	response.sendFile(path.join(__dirname + "/report.html"));
+});
+
+app.route("/report").post(function (request, response) {
+	// Log
+	console.log("*----*----*----*----*----*----*----*----*-----*");
+	console.log("Object search request has been occured");
+	console.log("	objId:" + request.body.obj_id);
+	console.log("	locId:" + request.body.loc_id);
+
+	// Generate Query
+	var script = "SELECT * FROM LOST WHERE "
+		+ "OBJ_ID=" + request.body.obj_id + " AND "
+		+ "LOC_ID=" + request.body.loc_id + ";";
+
+	// Process Query
+	pool.query(script, function (error, rows, fields) {
+		if(error != null) {
+			console.log(error);
+			response.send("RETURN_1");
+		} else {
+			if(rows == "") {
+				// Generate Query
+				script = "INSERT INTO LOST (LOC_ID, OBJ_ID) VALUES ("
+					+ request.body.loc_id + ", "
+					+ request.body.obj_id + ");";
+
+				// Process Query
+				pool.query(script, function (error, rows, fields) {
+					if(error != null) {
+						console.log(error);
+						response.send("RETURN_1");
+					} else {
+						response.send("RETURN_0");
+					}
+				});
+			} else {
+				response.send("RETURN_0");
+			}
+		}
+	});
+});
+
+/*
+ * Get Object List
+ */
+app.route("/objList").get(function (request, response) {
+	response.sendFile(path.join(__dirname + "/objList.html"));
+});
+
+app.route("/objList").post(function (request, response) {
+	// Log
+	console.log("*----*----*----*----*----*----*----*----*-----*");
+	console.log("Object search request has been occured");
+	console.log("	Owner:" + request.body.email);
+
+	var result = {
+		data: null,
+		error: null
+	}
+
+	// Security Check
+	var email = pool.escape(request.body.email);
+
+	// Generate Query
+	var script = "SELECT * FROM USER WHERE "
+		+ "EMAIL=" + email + ";";
+
+	// Process Query
+	pool.query(script, function (error, rows, fields) {
+		// Error Check
+		if(error != null) {
+			// Trace Error
+			console.log(error);
+			result["error"] = error;
+			response.send(JSON.stringify(result));
+		} else {
+			// Check the existence of user
+			if(rows == "") {
+				// No such user
+				response.send(result);
+			} else {
+				script = "SELECT OBJ_NAME, LOST_TIME, EMAIL FROM "
+					+ "LOST JOIN OBJECT ON LOST.OBJ_ID=OBJECT.OBJ_ID WHERE "
+					+ "EMAIL=" + email + ";";
+
+				pool.query(script, function (error, rows, fields) {
+					if(error != null) {
+						// Trace Error
+						console.log(error);
+						result["error"] = error;
+					} else {
+						result["data"] = rows;
+					}
+					response.send(JSON.stringify(result));
+				});
+			}
+		}
+	});
+});
+
+/*
+ * Admin Page : To handle the location info
+*/
+app.route("/secret").get(function (request, response) {
+	response.sendFile(path.join(__dirname + "/location.html"));
+});
+
+app.route("/secret").post(function (request, response) {
+	// Security Check
+	var email    = request.body.email;
+	var password = request.body.password;
+	var loc_name = pool.escape(request.body.loc_name);
+
+	// Log
+	console.log("*----*----*----*----*----*----*----*----*-----*");
+	console.log("Location insertion request has been occured");
+	console.log("	Location Name:" + loc_name);
+
+	// Chedck Admin ID & Password
+	if(email == "__ADMIN_MODE__" && password == "arduinojs") {
+		var script = "SELECT * FROM LOCATION WHERE "
+			+ "LOC_NAME=" + loc_name + ";";
+
+		pool.query(script, function (error, rows, fields) {
+			if(error != null) {
+				// Error Trace
+				console.log(error);
+				response.send("MYSQL ERROR\n" + error);
+			} else {
+				// Check Duplication
+				if(rows == "") {
+					//
+					script = "INSERT INTO LOCATION (LOC_NAME) "
+						+ "VALUES (" + loc_name + ");";
+
+					pool.query(script, function (error, rows, fields) {
+						if(error != null) {
+							console.log(error);
+							response.send("MYSQL ERROR\n" + error);
+						} else {
+							response.send("LOC_ID = " + rows.insertId);
+						}
+					});
+				} else {
+					response.send("ALREADY EXIST");
+				}
+			}
+		});
+	} else {
+		response.send("ACCESS DENIED");
+	}
 });
 
 /*
