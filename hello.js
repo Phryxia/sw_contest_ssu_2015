@@ -335,9 +335,11 @@ app.route("/objList").post(function (request, response) {
 				// No such user
 				response.send(result);
 			} else {
-				script = "SELECT OBJ_NAME, LOST_TIME, EMAIL FROM "
-					+ "LOST JOIN OBJECT ON LOST.OBJ_ID=OBJECT.OBJ_ID WHERE "
-					+ "EMAIL=" + email + ";";
+				script = "SELECT OBJ_NAME, LOST_TIME, LOC_NAME "
+					+ "FROM OBJECT "
+					+ "LEFT JOIN LOST ON LOST.OBJ_ID = OBJECT.OBJ_ID "
+					+ "LEFT JOIN LOCATION ON LOST.LOC_ID = LOCATION.LOC_ID "
+					+ "WHERE EMAIL=" + email + ";";
 
 				pool.query(script, function (error, rows, fields) {
 					if(error != null) {
