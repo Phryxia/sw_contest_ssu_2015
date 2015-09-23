@@ -357,6 +357,54 @@ app.route("/objList").post(function (request, response) {
 });
 
 /*
+	Delete Object from Lost List
+*/
+app.route("/delete").get(function (request, response) {
+	response.sendFile(path.join(__dirname + "/delete.html"));
+});
+
+app.route("/delete").post(function (request, response) {
+	var obj_id = request.body.obj_id; 
+
+	console.log("*----*----*----*----*----*----*----*----*-----*");
+	console.log("Lost object remove request has been occured");
+	console.log("	obj_id:" + obj_id);
+
+	var script = "SELECT * FROM LOST WHERE "
+		+ "OBJ_ID=" + obj_id + ";";
+
+	pool.query(script, function (error, rows, fields) {
+		// Check Error
+		if(error != null) {
+			// Error
+			console.log(error);
+		
+			// End Transaction
+			response.send("RETURN_1");
+		} else {
+			// Check duplication
+			if(rows != "") {
+				// Create query
+				script = "DELETE FROM LOST WHERE OBJ_ID = " + obj_id + ";";
+
+				// Insert and get the auto increment number
+				pool.query(script, function(error, rows, fields) {
+					// End Transaction
+					response.send("RETURN_0");
+				});
+			}
+			else {
+				// There is already such object
+				console.log("	There is no such object");
+		
+				// End Transaction
+				response.send("RETURN_0");
+			}
+		}
+	});
+});
+
+/*
  * Admin Page : To handle the location info
 */
 app.route("/secret").get(function (request, response) {
