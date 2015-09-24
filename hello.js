@@ -272,7 +272,7 @@ app.route("/report").post(function (request, response) {
 	pool.query(script, function (error, rows, fields) {
 		if(error != null) {
 			console.log(error);
-			response.send("RETURN_1");
+			response.send("SQL Error : Invalid argument : obj_id = " + request.body.obj_id + ", loc_id = " + request.body.loc_id);
 		} else {
 			if(rows == "") {
 				// Generate Query
@@ -284,13 +284,13 @@ app.route("/report").post(function (request, response) {
 				pool.query(script, function (error, rows, fields) {
 					if(error != null) {
 						console.log(error);
-						response.send("RETURN_1");
+						response.send("");
 					} else {
-						response.send("RETURN_0");
+						response.send("Item has been added successfully");
 					}
 				});
 			} else {
-				response.send("RETURN_0");
+				response.send("There is already such item");
 			}
 		}
 	});
@@ -380,7 +380,7 @@ app.route("/delete").post(function (request, response) {
 			console.log(error);
 		
 			// End Transaction
-			response.send("RETURN_1");
+			response.send("SQL Error : Invalid argument : obj_id = " + obj_id);
 		} else {
 			// Check duplication
 			if(rows != "") {
@@ -390,7 +390,7 @@ app.route("/delete").post(function (request, response) {
 				// Insert and get the auto increment number
 				pool.query(script, function(error, rows, fields) {
 					// End Transaction
-					response.send("RETURN_0");
+					response.send("Item has been deleted successfully");
 				});
 			}
 			else {
@@ -398,7 +398,7 @@ app.route("/delete").post(function (request, response) {
 				console.log("	There is no such object");
 		
 				// End Transaction
-				response.send("RETURN_0");
+				response.send("There isn't any item to delete");
 			}
 		}
 	});
