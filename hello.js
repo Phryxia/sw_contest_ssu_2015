@@ -259,7 +259,7 @@ app.route("/report").get(function (request, response) {
 app.route("/report").post(function (request, response) {
 	// Log
 	console.log("*----*----*----*----*----*----*----*----*-----*");
-	console.log("Object search request has been occured");
+	console.log("Object report has been occured");
 	console.log("	objId:" + request.body.obj_id);
 	console.log("	locId:" + request.body.loc_id);
 
