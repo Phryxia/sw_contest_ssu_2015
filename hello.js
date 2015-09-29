@@ -9,10 +9,10 @@ var path       = require("path");
 var mySQL = require("mysql");
 var pool  = mySQL.createPool({
 	connectionLimit : 10,
-	host : "127.0.0.1",
+	host : "swcontest.c6r7vamqi1wb.us-west-2.rds.amazonaws.com",
 	port : "3306",
 	user : "Phryxia",
-	password : "a7a02ef6330bb2df03017d81dfdf975f",
+	password : "sulcoding2015",
 	database : "LOSTNFOUND"
 });
 
