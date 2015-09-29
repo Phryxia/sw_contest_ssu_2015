@@ -276,9 +276,10 @@ app.route("/report").post(function (request, response) {
 		} else {
 			if(rows == "") {
 				// Generate Query
-				script = "INSERT INTO LOST (LOC_ID, OBJ_ID) VALUES ("
+				script = "INSERT INTO LOST (LOC_ID, OBJ_ID, LOST_TIME) VALUES ("
 					+ request.body.loc_id + ", "
-					+ request.body.obj_id + ");";
+					+ request.body.obj_id + ", "
+					+ "NOW());";
 
 				// Process Query
 				pool.query(script, function (error, rows, fields) {
